@@ -58,6 +58,7 @@ btn.addEventListener("click", async () => {
     const report = await res.json();
     render(report);
     resultsEl.classList.remove("hidden");
+    await refreshMetrics();
   } catch (err) {
     errorEl.textContent = err.message;
     errorEl.classList.remove("hidden");
@@ -173,4 +174,43 @@ function renderQuality(quality) {
     .join("");
 
   document.getElementById("quality-feedback").textContent = quality.feedback;
+}
+
+async function refreshMetrics() {
+  const res = await fetch("/metrics");
+  if (!res.ok) return;
+  const data = await res.json();
+
+  const panel = document.getElementById("metrics-panel");
+  panel.classList.remove("hidden");
+
+  const count = data.total_conversations;
+  document.getElementById("metrics-count").textContent =
+    `${count} conversation${count === 1 ? "" : "s"} analysed this session`;
+
+  const scoresEl = document.getElementById("metrics-scores");
+  if (!data.average_scores) {
+    scoresEl.innerHTML = "";
+    return;
+  }
+
+  const fields = ["clarity", "empathy", "safety", "actionability"];
+  scoresEl.innerHTML = fields
+    .map((field) => {
+      const score = data.average_scores[field];
+      const color =
+        score >= 75 ? "bg-green-500" : score >= 50 ? "bg-yellow-400" : "bg-red-400";
+      return `
+        <div class="bg-white rounded-lg p-3 border border-blue-200">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs font-medium capitalize">${field}</span>
+            <span class="text-sm font-bold">${score}</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-1.5">
+            <div class="${color} h-1.5 rounded-full" style="width: ${score}%"></div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
 }
