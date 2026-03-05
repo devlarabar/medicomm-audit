@@ -25,9 +25,9 @@ Risk categories to check for:
 Return a JSON array of risk objects. Each object must have:
 - risk_types: array of applicable risk category strings
 - severity: "low", "medium", or "high"
-- explanation: brief explanation of the risk
+- explanation: one sentence explaining the risk
 - message_reference: 1-based index of the message where the risk occurs
-- safer_rewrite: a safer alternative phrasing for the problematic message
+- safer_rewrite: one concise sentence with a safer alternative phrasing
 
 If no risks are found, return an empty array: []
 
@@ -42,7 +42,7 @@ def analyze(conversation_text: str, summary: str) -> list[RiskAnalysis]:
     )
     message = _client.messages.create(
         model=MODEL,
-        max_tokens=2048,
+        max_tokens=1024,
         system=SYSTEM_PROMPT,
         messages=[
             {

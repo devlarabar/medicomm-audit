@@ -26,7 +26,7 @@ Return a single JSON object with:
 - empathy: integer 0-100
 - safety: integer 0-100
 - actionability: integer 0-100
-- feedback: a brief overall assessment (2-3 sentences)
+- feedback: a brief overall assessment (1 sentence)
 
 Return only valid JSON. No prose, no markdown."""
 
@@ -35,7 +35,7 @@ def score(conversation_text: str, summary: str) -> QualityScores:
     """Call Claude to score communication quality, returning a parsed model."""
     message = _client.messages.create(
         model=MODEL,
-        max_tokens=1024,
+        max_tokens=512,
         system=SYSTEM_PROMPT,
         messages=[
             {

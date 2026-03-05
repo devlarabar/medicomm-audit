@@ -16,14 +16,15 @@ Given a doctor-patient conversation, extract and summarize the following:
 - Recommendations and instructions given
 - Follow-up plan
 
-Be concise and factual. Use plain prose, not bullet points."""
+Be concise and factual. Use plain prose, not bullet points.
+Keep the total summary under 150 words."""
 
 
 def summarize(conversation_text: str) -> str:
     """Call Claude to produce a structured summary of the conversation."""
     message = _client.messages.create(
         model=MODEL,
-        max_tokens=1024,
+        max_tokens=512,
         system=SYSTEM_PROMPT,
         messages=[
             {
