@@ -1,3 +1,5 @@
-from fastapi import APIRouter
+"""API package — exports the main application router."""
 
-router = APIRouter()
+from app.api.routes import router
+
+__all__ = ["router"]
