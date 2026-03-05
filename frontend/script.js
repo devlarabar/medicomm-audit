@@ -67,10 +67,49 @@ btn.addEventListener("click", async () => {
   }
 });
 
+function parseConversation(text) {
+  const pattern = /^([^:]+):\s*(.+)$/;
+  const messages = [];
+  for (const line of text.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const match = trimmed.match(pattern);
+    if (match) {
+      messages.push({ index: messages.length + 1, speaker: match[1].trim(), text: match[2].trim() });
+    } else if (messages.length) {
+      messages[messages.length - 1].text += " " + trimmed;
+    }
+  }
+  return messages;
+}
+
 function render(report) {
   document.getElementById("summary-text").textContent = report.summary;
+  const riskIndices = new Set(report.risks.map((r) => r.message_reference));
+  renderTimeline(parseConversation(textarea.value), riskIndices);
   renderRisks(report.risks);
   renderQuality(report.quality);
+}
+
+function renderTimeline(messages, riskIndices) {
+  const el = document.getElementById("conversation-timeline");
+  el.innerHTML = messages
+    .map((m) => {
+      const isRisky = riskIndices.has(m.index);
+      const bg = isRisky ? "bg-red-50 border-l-4 border-red-400 pl-3" : "pl-4";
+      const badge = isRisky
+        ? `<span class="ml-2 text-xs text-red-600 font-medium">⚠ Risk detected</span>`
+        : "";
+      return `
+        <li class="py-1.5 ${bg}">
+          <span class="text-xs text-gray-400 mr-2">#${m.index}</span>
+          <span class="text-xs font-semibold text-gray-500">${m.speaker}:</span>
+          <span class="text-sm text-gray-800 ml-1">${m.text}</span>
+          ${badge}
+        </li>
+      `;
+    })
+    .join("");
 }
 
 function renderRisks(risks) {
