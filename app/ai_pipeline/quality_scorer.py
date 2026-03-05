@@ -4,6 +4,7 @@ import json
 
 import anthropic
 
+from app.ai_pipeline import write_log
 from app.models.schemas import QualityScores
 
 MODEL = "claude-sonnet-4-6"
@@ -47,4 +48,14 @@ def score(conversation_text: str, summary: str) -> QualityScores:
         ],
     )
     raw = json.loads(message.content[0].text)
-    return QualityScores(**raw)
+    scores = QualityScores(**raw)
+    write_log("quality.json", {
+        "model": MODEL,
+        "input_tokens": message.usage.input_tokens,
+        "output_tokens": message.usage.output_tokens,
+        "clarity": scores.clarity,
+        "empathy": scores.empathy,
+        "safety": scores.safety,
+        "actionability": scores.actionability,
+    })
+    return scores

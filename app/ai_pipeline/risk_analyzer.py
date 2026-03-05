@@ -4,6 +4,7 @@ import json
 
 import anthropic
 
+from app.ai_pipeline import write_log
 from app.ai_pipeline.parser import parse
 from app.models.schemas import RiskAnalysis
 
@@ -54,4 +55,13 @@ def analyze(conversation_text: str, summary: str) -> list[RiskAnalysis]:
         ],
     )
     raw = json.loads(message.content[0].text)
-    return [RiskAnalysis(**item) for item in raw]
+    risks = [RiskAnalysis(**item) for item in raw]
+    write_log("risk.json", {
+        "model": MODEL,
+        "input_tokens": message.usage.input_tokens,
+        "output_tokens": message.usage.output_tokens,
+        "risk_count": len(risks),
+        "severities": [r.severity for r in risks],
+        "risk_types": [r.risk_types for r in risks],
+    })
+    return risks

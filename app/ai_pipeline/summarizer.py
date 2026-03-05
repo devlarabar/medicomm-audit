@@ -2,6 +2,8 @@
 
 import anthropic
 
+from app.ai_pipeline import write_log
+
 MODEL = "claude-sonnet-4-6"
 
 _client = anthropic.Anthropic()
@@ -30,4 +32,10 @@ def summarize(conversation_text: str) -> str:
             }
         ],
     )
-    return message.content[0].text
+    result = message.content[0].text
+    write_log("summary.json", {
+        "model": MODEL,
+        "input_tokens": message.usage.input_tokens,
+        "output_tokens": message.usage.output_tokens,
+    })
+    return result
