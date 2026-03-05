@@ -1,6 +1,7 @@
 const btn = document.getElementById("analyze-btn");
 const textarea = document.getElementById("conversation");
 const resultsEl = document.getElementById("results");
+const emptyStateEl = document.getElementById("empty-state");
 const errorEl = document.getElementById("error-msg");
 
 const SAMPLE_CONVERSATION = `Doctor: Hi there, sorry for the wait. What can I do for you?
@@ -29,9 +30,9 @@ Patient: Okay great, thank you so much.`;
 textarea.value = SAMPLE_CONVERSATION;
 
 const SEVERITY_COLORS = {
-  low: "bg-yellow-50 border-yellow-300 text-yellow-800",
-  medium: "bg-orange-50 border-orange-300 text-orange-800",
-  high: "bg-red-50 border-red-300 text-red-800",
+  low: "bg-amber-50 border-amber-200 text-amber-800",
+  medium: "bg-orange-50 border-orange-200 text-orange-800",
+  high: "bg-red-50 border-red-200 text-red-800",
 };
 
 btn.addEventListener("click", async () => {
@@ -41,7 +42,6 @@ btn.addEventListener("click", async () => {
   btn.disabled = true;
   btn.textContent = "Analyzing…";
   errorEl.classList.add("hidden");
-  resultsEl.classList.add("hidden");
 
   try {
     const res = await fetch("/analyze", {
@@ -57,7 +57,9 @@ btn.addEventListener("click", async () => {
 
     const report = await res.json();
     render(report);
+    emptyStateEl.classList.add("hidden");
     resultsEl.classList.remove("hidden");
+    resultsEl.classList.add("flex");
     await refreshMetrics();
   } catch (err) {
     errorEl.textContent = err.message;
@@ -97,16 +99,22 @@ function renderTimeline(messages, riskIndices) {
   el.innerHTML = messages
     .map((m) => {
       const isRisky = riskIndices.has(m.index);
-      const bg = isRisky ? "bg-red-50 border-l-4 border-red-400 pl-3" : "pl-4";
+      const rowClass = isRisky
+        ? "border-l-2 border-red-400 pl-2 bg-red-50 rounded-r"
+        : "pl-3";
       const badge = isRisky
-        ? `<span class="ml-2 text-xs text-red-600 font-medium">⚠ Risk detected</span>`
+        ? `<span class="ml-1.5 text-xs text-red-500 font-medium">&#9651; risk</span>`
         : "";
       return `
-        <li class="py-1.5 ${bg}">
-          <span class="text-xs text-gray-400 mr-2">#${m.index}</span>
-          <span class="text-xs font-semibold text-gray-500">${m.speaker}:</span>
-          <span class="text-sm text-gray-800 ml-1">${m.text}</span>
-          ${badge}
+        <li class="flex items-start gap-2 py-1.5 ${rowClass}">
+          <span class="text-xs text-slate-300 font-mono w-5 text-right flex-shrink-0 mt-px">
+            ${m.index}
+          </span>
+          <div class="flex-1 min-w-0">
+            <span class="text-xs font-semibold text-slate-400">${m.speaker}:</span>
+            <span class="text-xs text-slate-700 ml-1">${m.text}</span>
+            ${badge}
+          </div>
         </li>
       `;
     })
@@ -117,7 +125,7 @@ function renderRisks(risks) {
   const el = document.getElementById("risk-list");
 
   if (!risks.length) {
-    el.innerHTML = '<p class="text-sm text-gray-500">No risks detected.</p>';
+    el.innerHTML = '<p class="text-xs text-slate-400">No risks detected.</p>';
     return;
   }
 
@@ -127,21 +135,22 @@ function renderRisks(risks) {
       const tags = risk.risk_types
         .map(
           (t) =>
-            `<span class="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">${t}</span>`
+            `<span class="inline-block bg-white bg-opacity-60 text-xs px-2 py-0.5 rounded border border-current border-opacity-20">${t}</span>`
         )
         .join(" ");
 
       return `
-        <div class="rounded-lg border p-4 ${colors}">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-semibold uppercase tracking-wide">${risk.severity} severity</span>
-            <span class="text-xs">Message #${risk.message_reference}</span>
+        <div class="rounded-lg border p-3 ${colors}">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="flex flex-wrap gap-1">${tags}</div>
+            <span class="text-xs font-semibold uppercase tracking-wide flex-shrink-0 ml-2">
+              ${risk.severity}
+            </span>
           </div>
-          <p class="text-sm mb-2">${risk.explanation}</p>
-          <div class="flex flex-wrap gap-1 mb-3">${tags}</div>
-          <div class="bg-white bg-opacity-60 rounded p-3">
-            <p class="text-xs font-medium mb-1">Safer rewrite</p>
-            <p class="text-sm italic">${risk.safer_rewrite}</p>
+          <p class="text-xs mb-2 leading-relaxed">${risk.explanation}</p>
+          <div class="bg-white bg-opacity-50 rounded px-2.5 py-2">
+            <p class="text-xs font-medium opacity-60 mb-0.5">Safer rewrite</p>
+            <p class="text-xs italic">${risk.safer_rewrite}</p>
           </div>
         </div>
       `;
@@ -149,30 +158,26 @@ function renderRisks(risks) {
     .join("");
 }
 
+function scoreBar(label, score) {
+  const color =
+    score >= 75 ? "bg-blue-500" : score >= 50 ? "bg-yellow-400" : "bg-red-400";
+  return `
+    <div>
+      <div class="flex justify-between items-baseline mb-1">
+        <span class="text-xs text-slate-500 capitalize">${label}</span>
+        <span class="text-sm font-bold text-slate-800">${score}</span>
+      </div>
+      <div class="w-full bg-slate-100 rounded-full h-1.5">
+        <div class="${color} h-1.5 rounded-full" style="width: ${score}%"></div>
+      </div>
+    </div>
+  `;
+}
+
 function renderQuality(quality) {
-  const scoresEl = document.getElementById("quality-scores");
   const dimensions = ["clarity", "empathy", "safety", "actionability"];
-
-  scoresEl.innerHTML = dimensions
-    .map((dim) => {
-      const score = quality[dim];
-      const color =
-        score >= 75 ? "bg-green-500" : score >= 50 ? "bg-yellow-400" : "bg-red-400";
-
-      return `
-        <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
-          <div class="flex justify-between items-center mb-1">
-            <span class="text-xs font-medium capitalize">${dim}</span>
-            <span class="text-sm font-bold">${score}</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-1.5">
-            <div class="${color} h-1.5 rounded-full" style="width: ${score}%"></div>
-          </div>
-        </div>
-      `;
-    })
-    .join("");
-
+  document.getElementById("quality-scores").innerHTML =
+    dimensions.map((d) => scoreBar(d, quality[d])).join("");
   document.getElementById("quality-feedback").textContent = quality.feedback;
 }
 
@@ -183,10 +188,12 @@ async function refreshMetrics() {
 
   const panel = document.getElementById("metrics-panel");
   panel.classList.remove("hidden");
+  panel.classList.add("flex");
+  panel.style.flexDirection = "column";
 
   const count = data.total_conversations;
   document.getElementById("metrics-count").textContent =
-    `${count} conversation${count === 1 ? "" : "s"} analysed this session`;
+    `${count} conversation${count === 1 ? "" : "s"}`;
 
   const scoresEl = document.getElementById("metrics-scores");
   if (!data.average_scores) {
@@ -195,22 +202,5 @@ async function refreshMetrics() {
   }
 
   const fields = ["clarity", "empathy", "safety", "actionability"];
-  scoresEl.innerHTML = fields
-    .map((field) => {
-      const score = data.average_scores[field];
-      const color =
-        score >= 75 ? "bg-green-500" : score >= 50 ? "bg-yellow-400" : "bg-red-400";
-      return `
-        <div class="bg-white rounded-lg p-3 border border-blue-200">
-          <div class="flex justify-between items-center mb-1">
-            <span class="text-xs font-medium capitalize">${field}</span>
-            <span class="text-sm font-bold">${score}</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-1.5">
-            <div class="${color} h-1.5 rounded-full" style="width: ${score}%"></div>
-          </div>
-        </div>
-      `;
-    })
-    .join("");
+  scoresEl.innerHTML = fields.map((f) => scoreBar(f, data.average_scores[f])).join("");
 }
