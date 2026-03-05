@@ -1,4 +1,4 @@
-# MediComm Audit
+# Medicomm Audit
 
 A lightweight tool that analyses doctor-patient conversation transcripts through
 an AI pipeline, returning a structured report with a clinical summary, risk flags,

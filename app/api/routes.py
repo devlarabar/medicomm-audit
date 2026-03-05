@@ -1,4 +1,4 @@
-"""API route definitions for the MediComm Audit pipeline."""
+"""API route definitions for the Medicomm Audit pipeline."""
 
 from fastapi import APIRouter
 
