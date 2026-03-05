@@ -54,7 +54,8 @@ def analyze(conversation_text: str, summary: str) -> list[RiskAnalysis]:
             }
         ],
     )
-    raw = json.loads(message.content[0].text)
+    text = message.content[0].text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+    raw = json.loads(text)
     risks = [RiskAnalysis(**item) for item in raw]
     write_log("risk.json", {
         "model": MODEL,

@@ -47,7 +47,8 @@ def score(conversation_text: str, summary: str) -> QualityScores:
             }
         ],
     )
-    raw = json.loads(message.content[0].text)
+    text = message.content[0].text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+    raw = json.loads(text)
     scores = QualityScores(**raw)
     write_log("quality.json", {
         "model": MODEL,
