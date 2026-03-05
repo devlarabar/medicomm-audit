@@ -1,0 +1,52 @@
+"""Detects clinical communication risks in a conversation using Claude."""
+
+import json
+
+import anthropic
+
+from app.models.schemas import RiskAnalysis
+
+MODEL = "claude-sonnet-4-6"
+
+_client = anthropic.Anthropic()
+
+SYSTEM_PROMPT = """You are a clinical communication safety reviewer.
+Given a doctor-patient conversation and a summary, identify any communication risks.
+
+Risk categories to check for:
+- unclear_instructions: Instructions that are vague or could be misunderstood
+- dismissed_symptoms: Patient concerns that were downplayed or ignored
+- missing_follow_up: No follow-up plan was established when one was needed
+- ambiguous_advice: Advice that could be interpreted in conflicting ways
+- early_medication_stop: Patient indicates they may stop medication early without guidance
+
+Return a JSON array of risk objects. Each object must have:
+- risk_types: array of applicable risk category strings
+- severity: "low", "medium", or "high"
+- explanation: brief explanation of the risk
+- message_reference: 1-based index of the message where the risk occurs
+- safer_rewrite: a safer alternative phrasing for the problematic message
+
+If no risks are found, return an empty array: []
+
+Return only valid JSON. No prose, no markdown."""
+
+
+def analyze(conversation_text: str, summary: str) -> list[RiskAnalysis]:
+    """Call Claude to identify risks in the conversation, returning parsed models."""
+    message = _client.messages.create(
+        model=MODEL,
+        max_tokens=2048,
+        system=SYSTEM_PROMPT,
+        messages=[
+            {
+                "role": "user",
+                "content": (
+                    f"Summary:\n{summary}\n\n"
+                    f"Conversation:\n{conversation_text}"
+                ),
+            }
+        ],
+    )
+    raw = json.loads(message.content[0].text)
+    return [RiskAnalysis(**item) for item in raw]
