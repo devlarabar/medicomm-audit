@@ -3,6 +3,31 @@ const textarea = document.getElementById("conversation");
 const resultsEl = document.getElementById("results");
 const errorEl = document.getElementById("error-msg");
 
+const SAMPLE_CONVERSATION = `Doctor: Hi there, sorry for the wait. What can I do for you?
+Patient: Hi, no worries. So I've got this really sore throat, it's been going on since like Sunday, maybe Saturday night actually. And it's not getting better.
+Doctor: Okay. Any fever?
+Patient: Yeah, I've been feeling hot and cold. I took my temperature last night and it was 38.4 I think.
+Doctor: Right. Let me have a look. Can you open wide for me? Say ahh.
+Patient: Ahhh.
+Doctor: Okay… yeah, there's definitely inflammation, and I can see some white patches on your tonsils there. Almost certainly bacterial — strep most likely.
+Patient: Is that bad?
+Doctor: It's very common, very treatable. I'm going to prescribe you a course of amoxicillin. Are you allergic to penicillin at all?
+Patient: No, I don't think so. No.
+Doctor: Good. So take one tablet twice a day — morning and evening, ideally with food.
+Patient: How long for?
+Doctor: Ten days. Now the important thing is you finish the whole course, even once you start feeling better — which should be in a couple of days.
+Patient: Right, yeah. It's just — I'm bad at remembering pills once I feel normal again, you know? Like is it a big deal if I stop a bit early?
+Doctor: You really should finish them.
+Patient: Okay. What about painkillers, can I take anything in the meantime?
+Doctor: Yeah, paracetamol or ibuprofen, whatever works for you. Keep your fluids up as well.
+Patient: I've got a work thing on Thursday, will I be okay for that?
+Doctor: You should be feeling much better by Thursday, yeah.
+Patient: And if I'm not?
+Doctor: Just call the surgery if things aren't improving.
+Patient: Okay great, thank you so much.`;
+
+textarea.value = SAMPLE_CONVERSATION;
+
 const SEVERITY_COLORS = {
   low: "bg-yellow-50 border-yellow-300 text-yellow-800",
   medium: "bg-orange-50 border-orange-300 text-orange-800",
