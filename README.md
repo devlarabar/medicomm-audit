@@ -8,6 +8,23 @@ communication quality scores, and safer rewrite suggestions.
 
 ---
 
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Backend | [FastAPI](https://fastapi.tiangolo.com/) + Uvicorn |
+| AI | [Anthropic Claude](https://www.anthropic.com/) via `anthropic` SDK |
+| Frontend | Vanilla HTML/CSS/JS |
+| Package manager | [uv](https://docs.astral.sh/uv/) |
+| Runtime | Python 3.12+ |
+
+Before you ask why not use a frontend framework: this is a small MVP and I didn't
+feel like killing a fly with a sledgehammer. Migrating to React/Next.js/etc
+would be straightforward and also likely to happen if I ever decide to add cool
+stuff like graphs and reports.
+
+---
+
 ## Architecture
 
 ```
