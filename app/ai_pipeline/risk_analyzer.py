@@ -4,6 +4,7 @@ import json
 
 import anthropic
 
+from app.ai_pipeline.parser import parse
 from app.models.schemas import RiskAnalysis
 
 MODEL = "claude-sonnet-4-6"
@@ -34,6 +35,10 @@ Return only valid JSON. No prose, no markdown."""
 
 def analyze(conversation_text: str, summary: str) -> list[RiskAnalysis]:
     """Call Claude to identify risks in the conversation, returning parsed models."""
+    messages = parse(conversation_text)
+    numbered = "\n".join(
+        f"[{m['index']}] {m['speaker']}: {m['text']}" for m in messages
+    )
     message = _client.messages.create(
         model=MODEL,
         max_tokens=2048,
@@ -43,7 +48,7 @@ def analyze(conversation_text: str, summary: str) -> list[RiskAnalysis]:
                 "role": "user",
                 "content": (
                     f"Summary:\n{summary}\n\n"
-                    f"Conversation:\n{conversation_text}"
+                    f"Conversation (each line prefixed with its message number):\n{numbered}"
                 ),
             }
         ],
