@@ -4,6 +4,8 @@ A lightweight tool that analyses doctor-patient conversation transcripts through
 an AI pipeline, returning a structured report with a clinical summary, risk flags,
 communication quality scores, and safer rewrite suggestions.
 
+![Medicomm Audit screenshot](assets/ma-screenshot-1.png)
+
 ---
 
 ## Architecture
